@@ -94,7 +94,7 @@ def main():
             print(f"'{name}' was not found. Please use both first and last name.")
             pass
         except:
-            print(f"'{name}' was not found.")
+            print(f"'{name}' was not found or there is a bug in the code.")
             pass
     
     sorted_players = player_sort(players, sort_method)
