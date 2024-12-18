@@ -1,7 +1,7 @@
 # mvp-calculator
 I made this to calculate total stats (passing + rushing) for a given set of QBs. I made this as a simply project to practice Python and save me some time finding and tracking this information myself every week.
 
-I used some code (player_game_log.py) from user mjk2244's project https://github.com/mjk2244/pro-football-reference-web-scraper. I just added code on lines 107 and 145 to scrape fumbles lost as well as the other data. 
+I used some code (player_game_log.py) from user mjk2244's project https://github.com/mjk2244/pro-football-reference-web-scraper. I just added code on lines 107 and 145-148 to scrape fumbles lost as well as the other data. 
 
 USAGE:
 
