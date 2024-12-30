@@ -5,7 +5,7 @@ import player_game_log as p
 
 
 class Player:
-    def __init__(self, name, w, l, cmp, att, pass_yd, pass_td, ints, rush_yd, rush_td, fum):
+    def __init__(self, name, w, l, cmp, att, pass_yd, pass_td, ints, rush_yd, rush_td, fum, sacks):
         self.name = name
         self.cmp = cmp
         self.att = att
@@ -15,6 +15,7 @@ class Player:
         self.rush_yd = rush_yd
         self.rush_td = rush_td
         self.fum = fum
+        self.sacks = sacks
         self.wins = w
         self.losses = l
         self.rtg = self.calc_rtg(self.cmp, self.att)
@@ -28,6 +29,7 @@ class Player:
         self.tds_game = round(self.ttl_td / (self.wins + self.losses), 1)
         self.tos_game = round(self.turnovers / (self.wins + self.losses), 1)
         self.tds_to = round(self.ttl_td / self.turnovers, 1)
+        self.sacks_game = round(self.sacks / (self.wins + self.losses), 1)
 
     def __str__(self):
         return f"{bold(self.name):24} | {bold("Total YDS")}: {self.ttl_yd:,} | {bold("Total TDS:")} {self.ttl_td:2} | {bold("Turnovers:")} {self.turnovers:2} | {bold("RTG:")} {self.rtg:5} | {bold("Team Record:")} {self.rec:5}"
@@ -83,9 +85,10 @@ def main():
             wins = result_counts.get('W', 0)
             losses = result_counts.get('L', 0)
             fum = game_log["fumbles_lost"].sum()
+            sacks = game_log["pass_sacked"].sum()
             cmp = game_log["cmp"].sum()
             att = game_log["att"].sum()
-            player = Player(name, wins, losses, cmp, att, pass_yd, pass_td, ints, rush_yd, rush_td, fum)
+            player = Player(name, wins, losses, cmp, att, pass_yd, pass_td, ints, rush_yd, rush_td, fum, sacks)
             players.append(player)
         except IndexError:
             print(f"'{name}' is not compatible. Please use both first and last name.")
@@ -108,7 +111,7 @@ def main():
     # If user specified output file at runtime, save output to .csv file. Includes addtional stats. 
     if not output == "":
         with open(output, "w") as file:
-            fieldnames = ["name",  "team_record", "total_yards", "total_tds", "turnovers", "passer_rating", "yards/game", "tds/game", "turnovers/game", "tds/turnover"]
+            fieldnames = ["name",  "team_record", "total_yards", "yards/game", "total_tds", "tds/game", "turnovers", "turnovers/game", "tds/turnover", "passer_rating", "sacks", "sacks/game"]
             writer = csv.DictWriter(file, fieldnames=fieldnames)
             writer.writeheader()
             for player in sorted_players:
@@ -116,13 +119,15 @@ def main():
                     "name": player.name,
                     "team_record": player.rec,
                     "total_yards": player.ttl_yd,
-                    "total_tds": player.ttl_td,
-                    "turnovers": player.turnovers,
-                    "passer_rating": player.rtg,
                     "yards/game": player.yds_game,
+                    "total_tds": player.ttl_td,
                     "tds/game": player.tds_game,
+                    "turnovers": player.turnovers,
                     "turnovers/game": player.tos_game,
-                    "tds/turnover": player.tds_to
+                    "tds/turnover": player.tds_to,
+                    "passer_rating": player.rtg,
+                    "sacks": player.sacks,
+                    "sacks/game": player.sacks_game
                     })
         print(f"Advanced stats saved to '{output}'")
 

@@ -1,5 +1,5 @@
 # This program was written by mjk2244 and downloaded from https://github.com/mjk2244/pro-football-reference-web-scraper
-# I added the code on lines 107 & 145-148 to also scrape fumbles lost.
+# I added the code on lines 107-108 & 146-150 to also scrape sacks and fumbles lost.
 
 import pandas as pd  # type: ignore
 from bs4 import BeautifulSoup
@@ -105,6 +105,7 @@ def qb_game_log(soup: BeautifulSoup) -> pd.DataFrame:
         'rush_yds': [],
         'rush_td': [],
         'fumbles_lost': [],
+        'pass_sacked': []
     }  # type: dict
 
     table_rows = soup.find('tbody').find_all('tr')
@@ -146,6 +147,7 @@ def qb_game_log(soup: BeautifulSoup) -> pd.DataFrame:
                 data['fumbles_lost'].append(int(table_rows[i].find('td', {'data-stat': 'fumbles_lost'}).text))
             except ValueError:
                 data['fumbles_lost'].append(0)
+            data['pass_sacked'].append(int(table_rows[i].find('td', {'data-stat': 'pass_sacked'}).text))
 
     return pd.DataFrame(data=data)
 
