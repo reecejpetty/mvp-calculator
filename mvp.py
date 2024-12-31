@@ -18,7 +18,7 @@ class Player:
         self.sacks = sacks
         self.wins = w
         self.losses = l
-        self.rtg = self.calc_rtg(self.cmp, self.att)
+        self.rtg = self.calc_rtg()
         self.rec = f"{self.wins}-{self.losses}"
         
         # Advanced stats
@@ -36,12 +36,12 @@ class Player:
         #return f"{bold(self.name):24} | {bold("Total YDS")}: {self.ttl_yd:,} | {bold("Total TDS:")} {self.ttl_td:2} | {bold("Turnovers:")} {self.turnovers:2} | {bold("RTG:")} {self.rtg:5} | {bold("Team Record:")} {self.rec:5}"
         return f"{bold(self.name):23} | {self.cmppercent}% | {self.ttl_yd:,} YDs | {self.ttl_td:2} TDs | {self.turnovers:2} TOs | {self.rtg:5} Rtg | {bold("Record:")} {self.rec:5}"
     
-    def calc_rtg(self, cmp, att):
+    def calc_rtg(self):
         # Calculate quarterback passer rating
-        a = ((cmp/att) - 0.3) * 5
-        b = ((self.pass_yd/att) - 3) * 0.25
-        c = (self.pass_td/att) * 20
-        d = 2.375 - ((self.ints/att) * 25)
+        a = ((self.cmp/self.att) - 0.3) * 5
+        b = ((self.pass_yd/self.att) - 3) * 0.25
+        c = (self.pass_td/self.att) * 20
+        d = 2.375 - ((self.ints/self.att) * 25)
         stats = [a, b, c, d]
         for stat in stats:
             if stat > 2.375:
