@@ -33,7 +33,8 @@ class Player:
         self.sacks_game = round(self.sacks / (self.wins + self.losses), 1)
 
     def __str__(self):
-        return f"{bold(self.name):24} | {bold("Total YDS")}: {self.ttl_yd:,} | {bold("Total TDS:")} {self.ttl_td:2} | {bold("Turnovers:")} {self.turnovers:2} | {bold("RTG:")} {self.rtg:5} | {bold("Team Record:")} {self.rec:5}"
+        #return f"{bold(self.name):24} | {bold("Total YDS")}: {self.ttl_yd:,} | {bold("Total TDS:")} {self.ttl_td:2} | {bold("Turnovers:")} {self.turnovers:2} | {bold("RTG:")} {self.rtg:5} | {bold("Team Record:")} {self.rec:5}"
+        return f"{bold(self.name):23} | {self.cmppercent}% | {self.ttl_yd:,} YDs | {self.ttl_td:2} TDs | {self.turnovers:2} TOs | {self.rtg:5} Rtg | {bold("Record:")} {self.rec:5}"
     
     def calc_rtg(self, cmp, att):
         # Calculate quarterback passer rating
