@@ -22,6 +22,7 @@ class Player:
         self.rec = f"{self.wins}-{self.losses}"
         
         # Advanced stats
+        self.cmppercent = round(cmp/att*100, 1)
         self.ttl_yd = self.pass_yd + self.rush_yd
         self.ttl_td = self.pass_td + self.rush_td
         self.turnovers = self.ints + self.fum
@@ -111,13 +112,14 @@ def main():
     # If user specified output file at runtime, save output to .csv file. Includes addtional stats. 
     if not output == "":
         with open(output, "w") as file:
-            fieldnames = ["name",  "team_record", "total_yards", "yards/game", "total_tds", "tds/game", "turnovers", "turnovers/game", "tds/turnover", "passer_rating", "sacks", "sacks/game"]
+            fieldnames = ["name",  "team_record", "completion_%", "total_yards", "yards/game", "total_tds", "tds/game", "turnovers", "turnovers/game", "tds/turnover", "passer_rating", "sacks", "sacks/game"]
             writer = csv.DictWriter(file, fieldnames=fieldnames)
             writer.writeheader()
             for player in sorted_players:
                 writer.writerow({
                     "name": player.name,
                     "team_record": player.rec,
+                    "completion_%": player.cmppercent,
                     "total_yards": player.ttl_yd,
                     "yards/game": player.yds_game,
                     "total_tds": player.ttl_td,
