@@ -1,5 +1,5 @@
 # This program was written by mjk2244 and downloaded from https://github.com/mjk2244/pro-football-reference-web-scraper
-# I added the code on lines 107-108 & 136-180 to also scrape sacks and fumbles lost.
+# I added the code on lines 107-108 & 136-183 to also scrape sacks and fumbles lost.
 
 import pandas as pd  # type: ignore
 from bs4 import BeautifulSoup
