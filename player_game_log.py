@@ -133,21 +133,54 @@ def qb_game_log(soup: BeautifulSoup) -> pd.DataFrame:
             data['opp_pts'].append(
                 int(table_rows[i].find('td', {'data-stat': 'game_result'}).text.split(' ')[1].split('-')[1])
             )
-            data['cmp'].append(int(table_rows[i].find('td', {'data-stat': 'pass_cmp'}).text))
-            data['att'].append(int(table_rows[i].find('td', {'data-stat': 'pass_att'}).text))
-            data['pass_yds'].append(int(table_rows[i].find('td', {'data-stat': 'pass_yds'}).text))
-            data['pass_td'].append(int(table_rows[i].find('td', {'data-stat': 'pass_td'}).text))
-            data['int'].append(int(table_rows[i].find('td', {'data-stat': 'pass_int'}).text))
-            data['rating'].append(float(table_rows[i].find('td', {'data-stat': 'pass_rating'}).text))
-            data['sacked'].append(int(table_rows[i].find('td', {'data-stat': 'pass_sacked'}).text))
-            data['rush_att'].append(int(table_rows[i].find('td', {'data-stat': 'rush_att'}).text))
-            data['rush_yds'].append(int(table_rows[i].find('td', {'data-stat': 'rush_yds'}).text))
-            data['rush_td'].append(int(table_rows[i].find('td', {'data-stat': 'rush_td'}).text))
+            try:
+                data['cmp'].append(int(table_rows[i].find('td', {'data-stat': 'pass_cmp'}).text))
+            except ValueError:
+                data['cmp'].append(0)
+            try:
+                data['att'].append(int(table_rows[i].find('td', {'data-stat': 'pass_att'}).text))
+            except ValueError:
+                data['att'].append(0)
+            try:
+                data['pass_yds'].append(int(table_rows[i].find('td', {'data-stat': 'pass_yds'}).text))
+            except ValueError:
+                data['pass_yds'].append(0)
+            try:
+                data['pass_td'].append(int(table_rows[i].find('td', {'data-stat': 'pass_td'}).text))
+            except ValueError:
+                data['pass_td'].append(0)
+            try:
+                data['int'].append(int(table_rows[i].find('td', {'data-stat': 'pass_int'}).text))
+            except ValueError:
+                data['int'].append(0)
+            try:
+                data['rating'].append(float(table_rows[i].find('td', {'data-stat': 'pass_rating'}).text))
+            except ValueError:
+                data['rating'].append(0)
+            try:
+                data['sacked'].append(int(table_rows[i].find('td', {'data-stat': 'pass_sacked'}).text))
+            except ValueError:
+                data['sacked'].append(0)
+            try:
+                data['rush_att'].append(int(table_rows[i].find('td', {'data-stat': 'rush_att'}).text))
+            except ValueError:
+                data['rush_att'].append(0)
+            try:
+                data['rush_yds'].append(int(table_rows[i].find('td', {'data-stat': 'rush_yds'}).text))
+            except ValueError:
+                data['rush_yds'].append(0)
+            try:
+                data['rush_td'].append(int(table_rows[i].find('td', {'data-stat': 'rush_td'}).text))
+            except ValueError:
+                data['rush_td'].append(0)
             try:
                 data['fumbles_lost'].append(int(table_rows[i].find('td', {'data-stat': 'fumbles_lost'}).text))
             except ValueError:
                 data['fumbles_lost'].append(0)
-            data['pass_sacked'].append(int(table_rows[i].find('td', {'data-stat': 'pass_sacked'}).text))
+            try:
+                data['pass_sacked'].append(int(table_rows[i].find('td', {'data-stat': 'pass_sacked'}).text))
+            except ValueError:
+                data['pass_sacked'].append(0)
 
     return pd.DataFrame(data=data)
 
