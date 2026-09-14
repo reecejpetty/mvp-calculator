@@ -22,30 +22,42 @@ class Player:
         self.wins = qb_stats.get('wins')
         self.losses = qb_stats.get('losses')
         self.ties = qb_stats.get('ties')
-        self.rtg = self.calc_rtg()
         self.rec = f"{self.wins}-{self.losses}-{self.ties}"
         
         # Advanced stats
-        self.cmppercent = round(self.cmp/self.att*100, 1)
         self.ttl_yd = self.pass_yd + self.rush_yd
         self.ttl_td = self.pass_td + self.rush_td
         self.turnovers = self.ints + self.fum
-        self.yds_game = round(self.ttl_yd / self.games_played, 1)
-        self.tds_game = round(self.ttl_td / self.games_played, 1)
-        self.tos_game = round(self.turnovers / self.games_played, 1)
-        self.sacks_game = round(self.sacks / self.games_played, 1)
+    
+    @property
+    def cmppercent(self):
+        return round(self.cmp/self.att*100, 1) if self.att > 0 else 0
+    
+    @property
+    def yds_game(self):
+        return round(self.ttl_yd / self.games_played, 1) if self.games_played > 0 else 0
+    
+    @property
+    def tds_game(self):
+        return round(self.ttl_td / self.games_played, 1) if self.games_played > 0 else 0
+    
+    @property
+    def tos_game(self):
+        return round(self.turnovers / self.games_played, 1) if self.games_played > 0 else 0
+    
+    @property
+    def sacks_game(self):
+        return round(self.sacks / self.games_played, 1) if self.games_played > 0 else 0
     
     @property
     def tds_to(self):
         turnovers = 1 if self.turnovers == 0 else self.turnovers
         return round(self.ttl_td / turnovers, 1)
 
-    def __str__(self):
-        #return f"{bold(self.name):24} | {bold("Total YDS")}: {self.ttl_yd:,} | {bold("Total TDS:")} {self.ttl_td:2} | {bold("Turnovers:")} {self.turnovers:2} | {bold("RTG:")} {self.rtg:5} | {bold("Team Record:")} {self.rec:5}"
-        return f"{bold(self.name):23} | {self.cmppercent}% | {self.ttl_yd:,} YDs | {self.ttl_td:2} TDs | {self.turnovers:2} TOs | {self.rtg:5} Rtg | {bold("Record:")} {self.rec:5}"
-    
-    def calc_rtg(self):
-        # Calculate quarterback passer rating
+    @property
+    def rtg(self):
+        if self.att <= 0:
+            return 0
         a = ((self.cmp/self.att) - 0.3) * 5
         b = ((self.pass_yd/self.att) - 3) * 0.25
         c = (self.pass_td/self.att) * 20
@@ -57,6 +69,10 @@ class Player:
             elif stat < 0:
                 stat = 0
         return round(((a + b + c + d) / 6) * 100, 1)
+
+    def __str__(self):
+        #return f"{bold(self.name):24} | {bold("Total YDS")}: {self.ttl_yd:,} | {bold("Total TDS:")} {self.ttl_td:2} | {bold("Turnovers:")} {self.turnovers:2} | {bold("RTG:")} {self.rtg:5} | {bold("Team Record:")} {self.rec:5}"
+        return f"{bold(self.name):23} | {self.cmppercent}% | {self.ttl_yd:,} YDs | {self.ttl_td:2} TDs | {self.turnovers:2} TOs | {self.rtg:5} Rtg | {bold("Record:")} {self.rec:5}"
 
 
 def main():
@@ -86,34 +102,26 @@ def main():
     
     # For each name given, attempt to scrape player's stats. Erroneous entries are mentioned and then passed, and are not included in output.
     for name in names:
-        try:
-            #game_log = p.get_player_game_log(player = name, position = 'QB', season = year)
-            qb = player_stats.filter(
-                (pl.col('player_display_name') == name) & (pl.col('season_type') == 'REG')
-            )
-            qb_stats = {}
-            qb_stats['name'] = name
-            qb_stats['pass_yd'] = qb.select(pl.sum('passing_yards')).item()
-            qb_stats['pass_td'] = qb.select(pl.sum('passing_tds')).item()
-            qb_stats['ints'] = qb.select(pl.sum('passing_interceptions')).item()
-            qb_stats['rush_yd'] = qb.select(pl.sum('rushing_yards')).item()
-            qb_stats['rush_td'] = qb.select(pl.sum('rushing_tds')).item()
-            qb_stats['games_played'] = len(qb['week'].to_list())
-            qb_stats['wins'] = get_outcomes('Wins', qb, year)
-            qb_stats['losses'] = get_outcomes('Losses', qb, year)
-            qb_stats['ties'] = get_outcomes('Ties', qb, year)
-            qb_stats['fum'] = qb.select(pl.sum('sack_fumbles_lost')).item() + qb.select(pl.sum('rushing_fumbles_lost')).item()
-            qb_stats['sacks'] = qb.select(pl.sum('sacks_suffered')).item()
-            qb_stats['cmp'] = qb.select(pl.sum('completions')).item()
-            qb_stats['att'] = qb.select(pl.sum('attempts')).item()
-            player = Player(qb_stats)
-            players.append(player)
-        except IndexError:
-            print(f"'{name}' is not compatible. Please use both first and last name.")
-            pass
-        except AttributeError:
-            print(f"'{name}' was not found. Please use both first and last name.")
-            pass
+        qb = player_stats.filter(
+            (pl.col('player_display_name') == name) & (pl.col('season_type') == 'REG')
+        )
+        qb_stats = {}
+        qb_stats['name'] = name
+        qb_stats['pass_yd'] = qb.select(pl.sum('passing_yards')).item()
+        qb_stats['pass_td'] = qb.select(pl.sum('passing_tds')).item()
+        qb_stats['ints'] = qb.select(pl.sum('passing_interceptions')).item()
+        qb_stats['rush_yd'] = qb.select(pl.sum('rushing_yards')).item()
+        qb_stats['rush_td'] = qb.select(pl.sum('rushing_tds')).item()
+        qb_stats['games_played'] = len(qb['week'].to_list())
+        qb_stats['wins'] = get_outcomes('Wins', qb, year)
+        qb_stats['losses'] = get_outcomes('Losses', qb, year)
+        qb_stats['ties'] = get_outcomes('Ties', qb, year)
+        qb_stats['fum'] = qb.select(pl.sum('sack_fumbles_lost')).item() + qb.select(pl.sum('rushing_fumbles_lost')).item()
+        qb_stats['sacks'] = qb.select(pl.sum('sacks_suffered')).item()
+        qb_stats['cmp'] = qb.select(pl.sum('completions')).item()
+        qb_stats['att'] = qb.select(pl.sum('attempts')).item()
+        player = Player(qb_stats)
+        players.append(player)
     
     sorted_players = player_sort(players, sort_method)
     
@@ -149,7 +157,11 @@ def main():
 
 
 def get_outcomes(outcome, qb, year):
-    team = qb['team'].to_list()[0]
+    try:
+        team = qb['team'].to_list()[0]
+    except IndexError:
+        return 0
+
     weeks_played = qb['week'].to_list()
 
     schedules = nfl.load_schedules([year])
