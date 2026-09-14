@@ -2,6 +2,8 @@ import argparse
 import csv
 import sys
 import player_game_log as p
+import nflreadpy as nfl
+import polars as pl
 
 
 class Player:
@@ -29,8 +31,12 @@ class Player:
         self.yds_game = round(self.ttl_yd / (self.wins + self.losses), 1)
         self.tds_game = round(self.ttl_td / (self.wins + self.losses), 1)
         self.tos_game = round(self.turnovers / (self.wins + self.losses), 1)
-        self.tds_to = round(self.ttl_td / self.turnovers, 1)
         self.sacks_game = round(self.sacks / (self.wins + self.losses), 1)
+    
+    @property
+    def tds_to(self):
+        turnovers = 1 if self.turnovers == 0 else self.turnovers
+        return round(self.ttl_td / turnovers, 1)
 
     def __str__(self):
         #return f"{bold(self.name):24} | {bold("Total YDS")}: {self.ttl_yd:,} | {bold("Total TDS:")} {self.ttl_td:2} | {bold("Turnovers:")} {self.turnovers:2} | {bold("RTG:")} {self.rtg:5} | {bold("Team Record:")} {self.rec:5}"
@@ -56,7 +62,7 @@ def main():
     parser = argparse.ArgumentParser(description="QB Stats Calculator")
     parser.add_argument("-s", default="yds", help="Sort by ('yds', 'tds', 'tos', 'rtg', 'rec')", type=str)
     parser.add_argument("-o", default="", help="Output to .csv", type=str)
-    parser.add_argument("-y", default=2024, help="Year to check stats", type=int)
+    parser.add_argument("-y", default=2026, help="Year to check stats", type=int)
     args = parser.parse_args()
     sort_method = args.s
     if not args.o == "" and not args.o.lower().endswith(".csv"):
@@ -74,22 +80,26 @@ def main():
         else:
             break
 
+    player_stats = nfl.load_player_stats([year])
+    
     # For each name given, attempt to scrape player's stats. Erroneous entries are mentioned and then passed, and are not included in output.
     for name in names:
         try:
-            game_log = p.get_player_game_log(player = name, position = 'QB', season = year)
-            pass_yd = game_log["pass_yds"].sum()
-            pass_td = game_log["pass_td"].sum()
-            ints = game_log["int"].sum()
-            rush_yd = game_log["rush_yds"].sum()
-            rush_td = game_log["rush_td"].sum()
-            result_counts = game_log["result"].value_counts()
-            wins = result_counts.get('W', 0)
-            losses = result_counts.get('L', 0)
-            fum = game_log["fumbles_lost"].sum()
-            sacks = game_log["pass_sacked"].sum()
-            cmp = game_log["cmp"].sum()
-            att = game_log["att"].sum()
+            #game_log = p.get_player_game_log(player = name, position = 'QB', season = year)
+            qb = player_stats.filter(
+                (pl.col('player_display_name') == name) & (pl.col('season_type') == 'REG')
+            )
+            pass_yd = qb.select(pl.sum('passing_yards')).item()
+            pass_td = qb.select(pl.sum('passing_tds')).item()
+            ints = qb.select(pl.sum('passing_interceptions')).item()
+            rush_yd = qb.select(pl.sum('rushing_yards')).item()
+            rush_td = qb.select(pl.sum('rushing_tds')).item()
+            wins = 8
+            losses = 8
+            fum = qb.select(pl.sum('sack_fumbles_lost')).item() + qb.select(pl.sum('rushing_fumbles_lost')).item()
+            sacks = qb.select(pl.sum('sacks_suffered')).item()
+            cmp = qb.select(pl.sum('completions')).item()
+            att = qb.select(pl.sum('attempts')).item()
             player = Player(name, wins, losses, cmp, att, pass_yd, pass_td, ints, rush_yd, rush_td, fum, sacks)
             players.append(player)
         except IndexError:
@@ -97,9 +107,6 @@ def main():
             pass
         except AttributeError:
             print(f"'{name}' was not found. Please use both first and last name.")
-            pass
-        except:
-            print(f"'{name}' was not found or there is a bug in the code.")
             pass
     
     sorted_players = player_sort(players, sort_method)
