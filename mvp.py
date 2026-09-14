@@ -18,20 +18,22 @@ class Player:
         self.rush_td = qb_stats.get('rush_td')
         self.fum = qb_stats.get('fum')
         self.sacks = qb_stats.get('sacks')
+        self.games_played = qb_stats.get('games_played')
         self.wins = qb_stats.get('wins')
         self.losses = qb_stats.get('losses')
+        self.ties = qb_stats.get('ties')
         self.rtg = self.calc_rtg()
-        self.rec = f"{self.wins}-{self.losses}"
+        self.rec = f"{self.wins}-{self.losses}-{self.ties}"
         
         # Advanced stats
         self.cmppercent = round(self.cmp/self.att*100, 1)
         self.ttl_yd = self.pass_yd + self.rush_yd
         self.ttl_td = self.pass_td + self.rush_td
         self.turnovers = self.ints + self.fum
-        self.yds_game = round(self.ttl_yd / (self.wins + self.losses), 1)
-        self.tds_game = round(self.ttl_td / (self.wins + self.losses), 1)
-        self.tos_game = round(self.turnovers / (self.wins + self.losses), 1)
-        self.sacks_game = round(self.sacks / (self.wins + self.losses), 1)
+        self.yds_game = round(self.ttl_yd / self.games_played, 1)
+        self.tds_game = round(self.ttl_td / self.games_played, 1)
+        self.tos_game = round(self.turnovers / self.games_played, 1)
+        self.sacks_game = round(self.sacks / self.games_played, 1)
     
     @property
     def tds_to(self):
@@ -96,8 +98,10 @@ def main():
             qb_stats['ints'] = qb.select(pl.sum('passing_interceptions')).item()
             qb_stats['rush_yd'] = qb.select(pl.sum('rushing_yards')).item()
             qb_stats['rush_td'] = qb.select(pl.sum('rushing_tds')).item()
-            qb_stats['wins'] = 8
-            qb_stats['losses'] = 8
+            qb_stats['games_played'] = len(qb['week'].to_list())
+            qb_stats['wins'] = get_outcomes('Wins', qb, year)
+            qb_stats['losses'] = get_outcomes('Losses', qb, year)
+            qb_stats['ties'] = get_outcomes('Ties', qb, year)
             qb_stats['fum'] = qb.select(pl.sum('sack_fumbles_lost')).item() + qb.select(pl.sum('rushing_fumbles_lost')).item()
             qb_stats['sacks'] = qb.select(pl.sum('sacks_suffered')).item()
             qb_stats['cmp'] = qb.select(pl.sum('completions')).item()
@@ -143,6 +147,45 @@ def main():
                     })
         print(f"Advanced stats saved to '{output}'")
 
+
+def get_outcomes(outcome, qb, year):
+    team = qb['team'].to_list()[0]
+    weeks_played = qb['week'].to_list()
+
+    schedules = nfl.load_schedules([year])
+    
+    home_games = schedules.filter(pl.col('home_team') == team)
+    away_games = schedules.filter(pl.col('away_team') == team)
+    
+    wins = 0
+    losses = 0
+    ties = 0
+
+    for row in home_games.iter_rows(named=True):
+        if row['week'] in weeks_played:
+            if row['home_score'] > row['away_score']:
+                wins += 1
+            elif row['home_score'] < row['away_score']:
+                losses += 1
+            else:
+                ties += 1
+
+    for row in away_games.iter_rows(named=True):
+        if row['week'] in weeks_played:
+            if row['away_score'] > row['home_score']:
+                wins += 1
+            elif row['away_score'] < row['home_score']:
+                losses += 1
+            else:
+                ties += 1
+
+    match outcome:
+        case 'Wins':
+            return wins
+        case 'Losses':
+            return losses
+        case 'Ties':
+            return ties
 
 def bold(s):
     # Bold a given string. Seems to only work on MacOS (possibly Linux). Uncomment below line and comment out original line to fix on Windows.
