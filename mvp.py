@@ -7,21 +7,25 @@ from datetime import datetime
 
 
 class Player:
-    def __init__(self, qb_stats):
-        self.name = qb_stats.get('name')
-        self.cmp = qb_stats.get('cmp')
-        self.att = qb_stats.get('att')
-        self.pass_yd  = qb_stats.get('pass_yd')
-        self.pass_td = qb_stats.get('pass_td')
-        self.ints = qb_stats.get('ints')
-        self.rush_yd = qb_stats.get('rush_yd')
-        self.rush_td = qb_stats.get('rush_td')
-        self.fum = qb_stats.get('fum')
-        self.sacks = qb_stats.get('sacks')
-        self.games_played = qb_stats.get('games_played')
-        self.wins = qb_stats.get('wins')
-        self.losses = qb_stats.get('losses')
-        self.ties = qb_stats.get('ties')
+    def __init__(self, stats, name, year):
+        self.name = name
+        self.stats = stats
+        self.season = year
+        self.team = (stats['team'].to_list()[:1] or [None])[0]
+        self.weeks_played = stats['week'].to_list()
+        self.cmp = sum(stats['completions'].to_list())
+        self.att = sum(stats['attempts'].to_list())
+        self.pass_yd  = sum(stats['passing_yards'].to_list())
+        self.pass_td = sum(stats['passing_tds'].to_list())
+        self.ints = sum(stats['passing_interceptions'].to_list())
+        self.rush_yd = sum(stats['rushing_yards'].to_list())
+        self.rush_td = sum(stats['rushing_tds'].to_list())
+        self.fum = sum(stats['sack_fumbles_lost'].to_list()) + sum(stats['rushing_fumbles_lost'].to_list())
+        self.sacks = sum(stats['sacks_suffered'].to_list())
+        self.games_played = len(stats['week'].to_list())
+        self.wins = self.get_outcomes('w')
+        self.losses = self.get_outcomes('l')
+        self.ties = self.get_outcomes('t')
         self.rec = f"{self.wins}-{self.losses}-{self.ties}"
         
         # Advanced stats
@@ -73,6 +77,45 @@ class Player:
     def __str__(self):
         #return f"{bold(self.name):24} | {bold("Total YDS")}: {self.ttl_yd:,} | {bold("Total TDS:")} {self.ttl_td:2} | {bold("Turnovers:")} {self.turnovers:2} | {bold("RTG:")} {self.rtg:5} | {bold("Team Record:")} {self.rec:5}"
         return f"{bold(self.name):23} | {self.cmppercent}% | {self.ttl_yd:,} YDs | {self.ttl_td:2} TDs | {self.turnovers:2} TOs | {self.rtg:5} Rtg | {bold("Record:")} {self.rec:5}"
+    
+    def get_outcomes(self, outcome):
+        if not self.team:
+            return 0
+
+        schedules = nfl.load_schedules([self.season])
+        
+        home_games = schedules.filter(pl.col('home_team') == self.team)
+        away_games = schedules.filter(pl.col('away_team') == self.team)
+        
+        wins = 0
+        losses = 0
+        ties = 0
+
+        for row in home_games.iter_rows(named=True):
+            if row['week'] in self.weeks_played:
+                if row['home_score'] > row['away_score']:
+                    wins += 1
+                elif row['home_score'] < row['away_score']:
+                    losses += 1
+                else:
+                    ties += 1
+
+        for row in away_games.iter_rows(named=True):
+            if row['week'] in self.weeks_played:
+                if row['away_score'] > row['home_score']:
+                    wins += 1
+                elif row['away_score'] < row['home_score']:
+                    losses += 1
+                else:
+                    ties += 1
+
+        match outcome:
+            case 'w':
+                return wins
+            case 'l':
+                return losses
+            case 't':
+                return ties
 
 
 def main():
@@ -102,25 +145,10 @@ def main():
     
     # For each name given, attempt to scrape player's stats. Erroneous entries are mentioned and then passed, and are not included in output.
     for name in names:
-        qb = player_stats.filter(
+        stats = player_stats.filter(
             (pl.col('player_display_name') == name) & (pl.col('season_type') == 'REG')
         )
-        qb_stats = {}
-        qb_stats['name'] = name
-        qb_stats['pass_yd'] = qb.select(pl.sum('passing_yards')).item()
-        qb_stats['pass_td'] = qb.select(pl.sum('passing_tds')).item()
-        qb_stats['ints'] = qb.select(pl.sum('passing_interceptions')).item()
-        qb_stats['rush_yd'] = qb.select(pl.sum('rushing_yards')).item()
-        qb_stats['rush_td'] = qb.select(pl.sum('rushing_tds')).item()
-        qb_stats['games_played'] = len(qb['week'].to_list())
-        qb_stats['wins'] = get_outcomes('Wins', qb, year)
-        qb_stats['losses'] = get_outcomes('Losses', qb, year)
-        qb_stats['ties'] = get_outcomes('Ties', qb, year)
-        qb_stats['fum'] = qb.select(pl.sum('sack_fumbles_lost')).item() + qb.select(pl.sum('rushing_fumbles_lost')).item()
-        qb_stats['sacks'] = qb.select(pl.sum('sacks_suffered')).item()
-        qb_stats['cmp'] = qb.select(pl.sum('completions')).item()
-        qb_stats['att'] = qb.select(pl.sum('attempts')).item()
-        player = Player(qb_stats)
+        player = Player(stats, name, year)
         players.append(player)
     
     sorted_players = player_sort(players, sort_method)
@@ -155,49 +183,6 @@ def main():
                     })
         print(f"Advanced stats saved to '{output}'")
 
-
-def get_outcomes(outcome, qb, year):
-    try:
-        team = qb['team'].to_list()[0]
-    except IndexError:
-        return 0
-
-    weeks_played = qb['week'].to_list()
-
-    schedules = nfl.load_schedules([year])
-    
-    home_games = schedules.filter(pl.col('home_team') == team)
-    away_games = schedules.filter(pl.col('away_team') == team)
-    
-    wins = 0
-    losses = 0
-    ties = 0
-
-    for row in home_games.iter_rows(named=True):
-        if row['week'] in weeks_played:
-            if row['home_score'] > row['away_score']:
-                wins += 1
-            elif row['home_score'] < row['away_score']:
-                losses += 1
-            else:
-                ties += 1
-
-    for row in away_games.iter_rows(named=True):
-        if row['week'] in weeks_played:
-            if row['away_score'] > row['home_score']:
-                wins += 1
-            elif row['away_score'] < row['home_score']:
-                losses += 1
-            else:
-                ties += 1
-
-    match outcome:
-        case 'Wins':
-            return wins
-        case 'Losses':
-            return losses
-        case 'Ties':
-            return ties
 
 def bold(s):
     # Bold a given string. Seems to only work on MacOS (possibly Linux). Uncomment below line and comment out original line to fix on Windows.
