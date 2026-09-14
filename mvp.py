@@ -1,9 +1,9 @@
 import argparse
 import csv
 import sys
-import player_game_log as p
 import nflreadpy as nfl
 import polars as pl
+from datetime import datetime
 
 
 class Player:
@@ -64,7 +64,7 @@ def main():
     parser = argparse.ArgumentParser(description="QB Stats Calculator")
     parser.add_argument("-s", default="yds", help="Sort by ('yds', 'tds', 'tos', 'rtg', 'rec')", type=str)
     parser.add_argument("-o", default="", help="Output to .csv", type=str)
-    parser.add_argument("-y", default=2026, help="Year to check stats", type=int)
+    parser.add_argument("-y", default=datetime.now().year, help="Year to check stats", type=int)
     args = parser.parse_args()
     sort_method = args.s
     if not args.o == "" and not args.o.lower().endswith(".csv"):
