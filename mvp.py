@@ -7,24 +7,24 @@ import polars as pl
 
 
 class Player:
-    def __init__(self, name, w, l, cmp, att, pass_yd, pass_td, ints, rush_yd, rush_td, fum, sacks):
-        self.name = name
-        self.cmp = cmp
-        self.att = att
-        self.pass_yd  = pass_yd
-        self.pass_td = pass_td
-        self.ints = ints
-        self.rush_yd = rush_yd
-        self.rush_td = rush_td
-        self.fum = fum
-        self.sacks = sacks
-        self.wins = w
-        self.losses = l
+    def __init__(self, qb_stats):
+        self.name = qb_stats.get('name')
+        self.cmp = qb_stats.get('cmp')
+        self.att = qb_stats.get('att')
+        self.pass_yd  = qb_stats.get('pass_yd')
+        self.pass_td = qb_stats.get('pass_td')
+        self.ints = qb_stats.get('ints')
+        self.rush_yd = qb_stats.get('rush_yd')
+        self.rush_td = qb_stats.get('rush_td')
+        self.fum = qb_stats.get('fum')
+        self.sacks = qb_stats.get('sacks')
+        self.wins = qb_stats.get('wins')
+        self.losses = qb_stats.get('losses')
         self.rtg = self.calc_rtg()
         self.rec = f"{self.wins}-{self.losses}"
         
         # Advanced stats
-        self.cmppercent = round(cmp/att*100, 1)
+        self.cmppercent = round(self.cmp/self.att*100, 1)
         self.ttl_yd = self.pass_yd + self.rush_yd
         self.ttl_td = self.pass_td + self.rush_td
         self.turnovers = self.ints + self.fum
@@ -89,18 +89,20 @@ def main():
             qb = player_stats.filter(
                 (pl.col('player_display_name') == name) & (pl.col('season_type') == 'REG')
             )
-            pass_yd = qb.select(pl.sum('passing_yards')).item()
-            pass_td = qb.select(pl.sum('passing_tds')).item()
-            ints = qb.select(pl.sum('passing_interceptions')).item()
-            rush_yd = qb.select(pl.sum('rushing_yards')).item()
-            rush_td = qb.select(pl.sum('rushing_tds')).item()
-            wins = 8
-            losses = 8
-            fum = qb.select(pl.sum('sack_fumbles_lost')).item() + qb.select(pl.sum('rushing_fumbles_lost')).item()
-            sacks = qb.select(pl.sum('sacks_suffered')).item()
-            cmp = qb.select(pl.sum('completions')).item()
-            att = qb.select(pl.sum('attempts')).item()
-            player = Player(name, wins, losses, cmp, att, pass_yd, pass_td, ints, rush_yd, rush_td, fum, sacks)
+            qb_stats = {}
+            qb_stats['name'] = name
+            qb_stats['pass_yd'] = qb.select(pl.sum('passing_yards')).item()
+            qb_stats['pass_td'] = qb.select(pl.sum('passing_tds')).item()
+            qb_stats['ints'] = qb.select(pl.sum('passing_interceptions')).item()
+            qb_stats['rush_yd'] = qb.select(pl.sum('rushing_yards')).item()
+            qb_stats['rush_td'] = qb.select(pl.sum('rushing_tds')).item()
+            qb_stats['wins'] = 8
+            qb_stats['losses'] = 8
+            qb_stats['fum'] = qb.select(pl.sum('sack_fumbles_lost')).item() + qb.select(pl.sum('rushing_fumbles_lost')).item()
+            qb_stats['sacks'] = qb.select(pl.sum('sacks_suffered')).item()
+            qb_stats['cmp'] = qb.select(pl.sum('completions')).item()
+            qb_stats['att'] = qb.select(pl.sum('attempts')).item()
+            player = Player(qb_stats)
             players.append(player)
         except IndexError:
             print(f"'{name}' is not compatible. Please use both first and last name.")
