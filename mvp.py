@@ -1,6 +1,5 @@
 import argparse
 import csv
-import enum
 import sys
 import nflreadpy as nfl
 import polars as pl
@@ -34,6 +33,7 @@ class Player:
         self.ttl_td = self.pass_td + self.rush_td
         self.turnovers = self.ints + self.fum
     
+    # Return 0s for various properties to prevent divide by 0 error
     @property
     def cmppercent(self):
         return round(self.cmp/self.att*100, 1) if self.att > 0 else 0
@@ -61,6 +61,7 @@ class Player:
 
     @property
     def rtg(self):
+        # Calculate passer rating. Return 0 if no attemps to prevent divide by 0 error
         if self.att <= 0:
             return 0
         a = ((self.cmp/self.att) - 0.3) * 5
@@ -76,10 +77,10 @@ class Player:
         return round(((sum(calcs)) / 6) * 100, 1)
 
     def __str__(self):
-        #return f"{bold(self.name):24} | {bold("Total YDS")}: {self.ttl_yd:,} | {bold("Total TDS:")} {self.ttl_td:2} | {bold("Turnovers:")} {self.turnovers:2} | {bold("RTG:")} {self.rtg:5} | {bold("Team Record:")} {self.rec:5}"
         return f"{bold(self.name):23} | {self.cmppercent}% | {self.ttl_yd:,} YDs | {self.ttl_td:2} TDs | {self.turnovers:2} TOs | {self.rtg:5} Rtg | {bold("Record:")} {self.rec:5}"
-    
+
     def get_outcomes(self, outcome):
+        # If no teams found (i.e. no games played), return 0
         if not self.team:
             return 0
 
