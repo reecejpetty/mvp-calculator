@@ -35,8 +35,12 @@ class Player:
     
     # Return 0s for various properties to prevent divide by 0 error
     @property
-    def cmppercent(self):
+    def cmp_percent(self):
         return round(self.cmp/self.att*100, 1) if self.att > 0 else 0
+
+    @property
+    def yds_att(self):
+        return round(self.pass_yd/self.att, 1) if self.att > 0 else 0
     
     @property
     def yds_game(self):
@@ -77,7 +81,7 @@ class Player:
         return round(((sum(calcs)) / 6) * 100, 1)
 
     def __str__(self):
-        return f"{bold(self.name):23} | {self.cmppercent}% | {self.ttl_yd:,} YDs | {self.ttl_td:2} TDs | {self.turnovers:2} TOs | {self.rtg:5} Rtg | {bold("Record:")} {self.rec:5}"
+        return f"{bold(self.name):23} | {self.cmp_percent}% | {self.ttl_yd:,} YDs | {self.ttl_td:2} TDs | {self.turnovers:2} TOs | {self.rtg:5} Rtg | {bold("Record:")} {self.rec:5}"
 
     def get_outcomes(self, outcome):
         # If no teams found (i.e. no games played), return 0
@@ -165,6 +169,7 @@ def main():
     
     # Print out the sorted players list.
     print()
+    print(f'')
     for player in sorted_players:
         print(player)
     print()
@@ -172,14 +177,28 @@ def main():
     # If user specified output file at runtime, save output to .csv file. Includes addtional stats. 
     if not output == "":
         with open(output, "w") as file:
-            fieldnames = ["name",  "team_record", "completion_%", "total_yards", "yards/game", "total_tds", "tds/game", "turnovers", "turnovers/game", "tds/turnover", "passer_rating", "sacks", "sacks/game"]
+            fieldnames = [
+                "name",
+                "team_record",
+                "completion_%",
+                "total_yards",
+                "yards/game",
+                "total_tds",
+                "tds/game",
+                "turnovers",
+                "turnovers/game",
+                "tds/turnover",
+                "passer_rating",
+                "sacks",
+                "sacks/game"
+            ]
             writer = csv.DictWriter(file, fieldnames=fieldnames)
             writer.writeheader()
             for player in sorted_players:
                 writer.writerow({
                     "name": player.name,
                     "team_record": player.rec,
-                    "completion_%": player.cmppercent,
+                    "completion_%": player.cmp_percent,
                     "total_yards": player.ttl_yd,
                     "yards/game": player.yds_game,
                     "total_tds": player.ttl_td,
@@ -190,7 +209,7 @@ def main():
                     "passer_rating": player.rtg,
                     "sacks": player.sacks,
                     "sacks/game": player.sacks_game
-                    })
+                })
         print(f"Advanced stats saved to '{output}'")
 
 
