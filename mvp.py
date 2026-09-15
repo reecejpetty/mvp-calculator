@@ -132,26 +132,30 @@ def main():
         sys.exit("Invalid output. Please save as a .csv file.")
     output = args.o
     year = args.y
+    if year < 1999:
+        print('Only data from 1999 season onward is available.')
+        return 0
 
-    names = []
+    player_stats = nfl.load_player_stats([year])
     players = []
 
     while True:
         name = input("Player Name: ").title()
         if not name == "":
-            names.append(name)
+            stats = player_stats.filter(
+                (pl.col('player_display_name') == name) & (pl.col('season_type') == 'REG')
+            )
+            if len(stats['player_display_name'].to_list()) == 0:
+                print(f'No games by {name} found for {year} season.')
+            else:
+                player = Player(stats, name, year)
+                players.append(player)
         else:
             break
 
-    player_stats = nfl.load_player_stats([year])
-    
-    # For each name given, attempt to scrape player's stats. Erroneous entries are mentioned and then passed, and are not included in output.
-    for name in names:
-        stats = player_stats.filter(
-            (pl.col('player_display_name') == name) & (pl.col('season_type') == 'REG')
-        )
-        player = Player(stats, name, year)
-        players.append(player)
+    if not players:
+        print(f'No games played by entered players found for {year} season.')
+        return 0
     
     sorted_players = player_sort(players, sort_method)
     
