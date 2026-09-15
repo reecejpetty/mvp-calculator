@@ -1,5 +1,6 @@
 import argparse
 import csv
+import enum
 import sys
 import nflreadpy as nfl
 import polars as pl
@@ -66,13 +67,13 @@ class Player:
         b = ((self.pass_yd/self.att) - 3) * 0.25
         c = (self.pass_td/self.att) * 20
         d = 2.375 - ((self.ints/self.att) * 25)
-        stats = [a, b, c, d]
-        for stat in stats:
-            if stat > 2.375:
-                stat = 2.375
-            elif stat < 0:
-                stat = 0
-        return round(((a + b + c + d) / 6) * 100, 1)
+        calcs = [a, b, c, d]
+        for index, value in enumerate(calcs):
+            if value > 2.375:
+                calcs[index] = 2.375
+            elif value < 0:
+                calcs[index] = 0
+        return round(((sum(calcs)) / 6) * 100, 1)
 
     def __str__(self):
         #return f"{bold(self.name):24} | {bold("Total YDS")}: {self.ttl_yd:,} | {bold("Total TDS:")} {self.ttl_td:2} | {bold("Turnovers:")} {self.turnovers:2} | {bold("RTG:")} {self.rtg:5} | {bold("Team Record:")} {self.rec:5}"
