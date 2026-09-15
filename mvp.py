@@ -169,20 +169,20 @@ def main():
     data = []
     for player in sorted_players:
         new_data = {
-            'Player Name': player.name,
-            'Total YDs': player.ttl_yd,
-            'Total TDs': player.ttl_td,
-            'Turnovers': player.turnovers,
-            'CMP %': f'{player.cmp_percent:.1f}%',
-            'Pass YDs': f'{player.pass_yd:,}',
-            'Pass TDs': player.pass_td,
-            'INTs': player.ints,
-            'Y/A': f'{player.yds_att:.1f}',
-            'Sacks': player.sacks,
-            'Rush YDs': player.rush_yd,
-            'Rush TDs': player.rush_td,
-            'FMBs': player.fum,
-            'Team REC': player.rec 
+            bold('Player Name'): player.name,
+            bold('Total YDs'): player.ttl_yd,
+            bold('Total TDs'): player.ttl_td,
+            bold('Turnovers'): player.turnovers,
+            bold('CMP %'): f'{player.cmp_percent:.1f}%',
+            bold('Pass YDs'): f'{player.pass_yd:,}',
+            bold('Pass TDs'): player.pass_td,
+            bold('INTs'): player.ints,
+            bold('Y/A'): f'{player.yds_att:.1f}',
+            bold('Sacks'): player.sacks,
+            bold('Rush YDs'): player.rush_yd,
+            bold('Rush TDs'): player.rush_td,
+            bold('FMBs'): player.fum,
+            bold('Team REC'): player.rec 
         }
         data.append(new_data)
     
