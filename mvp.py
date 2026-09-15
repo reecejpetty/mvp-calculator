@@ -4,6 +4,7 @@ import sys
 import nflreadpy as nfl
 import polars as pl
 from datetime import datetime
+from tabulate import tabulate
 
 
 class Player:
@@ -79,9 +80,6 @@ class Player:
             elif value < 0:
                 calcs[index] = 0
         return round(((sum(calcs)) / 6) * 100, 1)
-
-    def __str__(self):
-        return f"{bold(self.name):23} | {self.cmp_percent}% | {self.ttl_yd:,} YDs | {self.ttl_td:2} TDs | {self.turnovers:2} TOs | {self.rtg:5} Rtg | {bold("Record:")} {self.rec:5}"
 
     def get_outcomes(self, outcome):
         # If no teams found (i.e. no games played), return 0
@@ -168,10 +166,28 @@ def main():
     sorted_players = player_sort(players, sort_method)
     
     # Print out the sorted players list.
-    print()
-    print(f'')
+    data = []
     for player in sorted_players:
-        print(player)
+        new_data = {
+            'Player Name': player.name,
+            'Total YDs': player.ttl_yd,
+            'Total TDs': player.ttl_td,
+            'Turnovers': player.turnovers,
+            'CMP %': f'{player.cmp_percent:.1f}%',
+            'Pass YDs': f'{player.pass_yd:,}',
+            'Pass TDs': player.pass_td,
+            'INTs': player.ints,
+            'Y/A': f'{player.yds_att:.1f}',
+            'Sacks': player.sacks,
+            'Rush YDs': player.rush_yd,
+            'Rush TDs': player.rush_td,
+            'FMBs': player.fum,
+            'Team REC': player.rec 
+        }
+        data.append(new_data)
+    
+    print()
+    print(tabulate(data, headers='keys', tablefmt='fancy_grid'))
     print()
 
     # If user specified output file at runtime, save output to .csv file. Includes addtional stats. 
