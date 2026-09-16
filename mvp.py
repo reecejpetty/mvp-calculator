@@ -145,7 +145,7 @@ def main():
 
     while True:
         name_found = False
-        name = input('Player Name: ').title()
+        name = input('Player Name: ').strip().title()
         
         # Check if player is already entered
         for player in players:
