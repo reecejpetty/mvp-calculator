@@ -8,10 +8,10 @@ from tabulate import tabulate
 
 
 class Player:
-    def __init__(self, stats, year):
+    def __init__(self, stats):
         self.name = stats['player_display_name'].to_list()[0]
         self.stats = stats
-        self.season = year
+        self.season = stats['season'].to_list()[0]
         self.team = (stats['team'].to_list()[:1] or [None])[0]
         self.weeks_played = stats['week'].to_list()
         self.cmp = sum(stats['completions'].to_list())
@@ -171,7 +171,7 @@ def main():
             if len(stats['player_display_name'].to_list()) == 0:
                 print(f'No games by {name} found for {year} season.')
             else:
-                new_player = Player(stats, year)
+                new_player = Player(stats)
                 
                 # Second check if player is already entered
                 for player in players:
@@ -214,8 +214,13 @@ def main():
         }
         data.append(new_data)
     
+    table = tabulate(data, headers='keys', tablefmt='fancy_grid', floatfmt='.1f', intfmt=',')
+    table_width = len(table.split('\n')[0])
+    title = f'MVP CALCULATOR - {year} NFL SEASON'
+
     print()
-    print(tabulate(data, headers='keys', tablefmt='fancy_grid', floatfmt='.1f', intfmt=','))
+    print(title.center(table_width))
+    print(table)
     print()
 
     # If user specified output file at runtime, save output to .csv file. Includes addtional stats. 
