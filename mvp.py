@@ -8,8 +8,8 @@ from tabulate import tabulate
 
 
 class Player:
-    def __init__(self, stats, name, year):
-        self.name = name
+    def __init__(self, stats, year):
+        self.name = stats['player_display_name'].to_list()[0]
         self.stats = stats
         self.season = year
         self.team = (stats['team'].to_list()[:1] or [None])[0]
@@ -171,7 +171,7 @@ def main():
             if len(stats['player_display_name'].to_list()) == 0:
                 print(f'No games by {name} found for {year} season.')
             else:
-                player = Player(stats, name, year)
+                player = Player(stats, year)
                 players.append(player)
         else:
             break
