@@ -144,23 +144,35 @@ def main():
     players = []
 
     while True:
-        name = input("Player Name: ").title()
         name_found = False
+        name = input('Player Name: ').title()
+        
+        # Check if player is already entered
         for player in players:
             if name == player.name:
                 name_found = True
+        if name_found:
+            print(f'{name} already entered.')
+            continue
         
+        # If new name entered, create player object
         if not name == "" and not name_found:
             stats = player_stats.filter(
                 (pl.col('player_display_name') == name) & (pl.col('season_type') == 'REG')
             )
+            
+            # If no players found, check abbreviated name (useful for players that have name suffixes)
+            if len(stats['player_display_name'].to_list()) == 0:
+                abr_name = name.split()
+                abr_name = f'{abr_name[0][0]}.{abr_name[1]}'
+                stats = player_stats.filter(
+                    (pl.col('player_name') == abr_name) & (pl.col('season_type') == 'REG')
+                )
             if len(stats['player_display_name'].to_list()) == 0:
                 print(f'No games by {name} found for {year} season.')
             else:
                 player = Player(stats, name, year)
                 players.append(player)
-        elif name_found:
-            print(f'{name} already entered.')
         else:
             break
 
