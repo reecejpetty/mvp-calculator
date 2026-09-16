@@ -145,7 +145,12 @@ def main():
 
     while True:
         name = input("Player Name: ").title()
-        if not name == "":
+        name_found = False
+        for player in players:
+            if name == player.name:
+                name_found = True
+        
+        if not name == "" and not name_found:
             stats = player_stats.filter(
                 (pl.col('player_display_name') == name) & (pl.col('season_type') == 'REG')
             )
@@ -154,6 +159,8 @@ def main():
             else:
                 player = Player(stats, name, year)
                 players.append(player)
+        elif name_found:
+            print(f'{name} already entered.')
         else:
             break
 
