@@ -173,11 +173,11 @@ def main():
             bold('Total YDs'): player.ttl_yd,
             bold('Total TDs'): player.ttl_td,
             bold('Turnovers'): player.turnovers,
-            bold('CMP %'): f'{player.cmp_percent:.1f}%',
-            bold('Pass YDs'): f'{player.pass_yd:,}',
+            bold('CMP %'): f'{player.cmp_percent}%',
+            bold('Pass YDs'): player.pass_yd,
             bold('Pass TDs'): player.pass_td,
             bold('INTs'): player.ints,
-            bold('Y/A'): f'{player.yds_att:.1f}',
+            bold('Y/A'): player.yds_att,
             bold('Sacks'): player.sacks,
             bold('Rush YDs'): player.rush_yd,
             bold('Rush TDs'): player.rush_td,
@@ -187,7 +187,7 @@ def main():
         data.append(new_data)
     
     print()
-    print(tabulate(data, headers='keys', tablefmt='fancy_grid'))
+    print(tabulate(data, headers='keys', tablefmt='fancy_grid', floatfmt='.1f', intfmt=','))
     print()
 
     # If user specified output file at runtime, save output to .csv file. Includes addtional stats. 
