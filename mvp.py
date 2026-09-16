@@ -171,8 +171,16 @@ def main():
             if len(stats['player_display_name'].to_list()) == 0:
                 print(f'No games by {name} found for {year} season.')
             else:
-                player = Player(stats, year)
-                players.append(player)
+                new_player = Player(stats, year)
+                
+                # Second check if player is already entered
+                for player in players:
+                    if new_player.name == player.name:
+                        print(f'{new_player.name} already entered.')
+                        name_found = True
+                
+                if not name_found:
+                    players.append(new_player)
         else:
             break
 
