@@ -21,7 +21,9 @@ class Player:
         self.ints = sum(stats['passing_interceptions'].to_list())
         self.rush_yd = sum(stats['rushing_yards'].to_list())
         self.rush_td = sum(stats['rushing_tds'].to_list())
-        self.fum = sum(stats['sack_fumbles_lost'].to_list()) + sum(stats['rushing_fumbles_lost'].to_list())
+        self.rec_yd = sum(stats['receiving_yards'].to_list())
+        self.rec_td = sum(stats['receiving_tds'].to_list())
+        self.fum = sum(stats['sack_fumbles_lost'].to_list()) + sum(stats['rushing_fumbles_lost'].to_list()) + sum(stats['receiving_fumbles_lost'].to_list())
         self.sacks = sum(stats['sacks_suffered'].to_list())
         self.games_played = len(stats['week'].to_list())
         self.wins = self.get_outcomes('w')
@@ -30,8 +32,8 @@ class Player:
         self.rec = f"{self.wins}-{self.losses}-{self.ties}"
         
         # Advanced stats
-        self.ttl_yd = self.pass_yd + self.rush_yd
-        self.ttl_td = self.pass_td + self.rush_td
+        self.ttl_yd = self.pass_yd + self.rush_yd + self.rec_yd
+        self.ttl_td = self.pass_td + self.rush_td + self.rec_td
         self.turnovers = self.ints + self.fum
     
     # Return 0s for various properties to prevent divide by 0 error
@@ -209,6 +211,8 @@ def main():
             bold('Sacks'): player.sacks,
             bold('Rush YDs'): player.rush_yd,
             bold('Rush TDs'): player.rush_td,
+            bold('Receiving YDs'): player.rec_yd,
+            bold('Receiving TDs'): player.rec_td,
             bold('FMBs'): player.fum,
             bold('Team REC'): player.rec 
         }
