@@ -29,7 +29,7 @@ class Player:
         self.wins = self.get_outcomes('w')
         self.losses = self.get_outcomes('l')
         self.ties = self.get_outcomes('t')
-        self.rec = f"{self.wins}-{self.losses}-{self.ties}"
+        self.rec = f'{self.wins}-{self.losses}-{self.ties}'
         
         # Advanced stats
         self.ttl_yd = self.pass_yd + self.rush_yd + self.rec_yd
@@ -126,14 +126,14 @@ class Player:
 
 def main():
     # Parse arguments
-    parser = argparse.ArgumentParser(description="QB Stats Calculator")
-    parser.add_argument("-s", default="yds", help="Sort by ('yds', 'tds', 'tos', 'rtg', 'rec')", type=str)
-    parser.add_argument("-o", default="", help="Output to .csv", type=str)
-    parser.add_argument("-y", default=datetime.now().year, help="Year to check stats", type=int)
+    parser = argparse.ArgumentParser(description='MVP Stats Calculator')
+    parser.add_argument('-s', '--sort', default='yds', help='Sort by ("yds", "tds", "tos", "rtg", "rec")', type=str)
+    parser.add_argument('-o', '--output', default='', help='Output to .csv', type=str)
+    parser.add_argument('-y', '--year', default=datetime.now().year, help='Check past NFL seasons by year', type=int)
     args = parser.parse_args()
     sort_method = args.s
-    if not args.o == "" and not args.o.lower().endswith(".csv"):
-        sys.exit("Invalid output. Please save as a .csv file.")
+    if not args.o == '' and not args.o.lower().endswith('.csv'):
+        sys.exit('Invalid output. Please save as a .csv file.')
     output = args.o
     year = args.y
     if year < 1999:
@@ -147,7 +147,7 @@ def main():
 
     while True:
         name_found = False
-        name = input('Player Name: ').strip().title()
+        name = input('Player Name: ').strip()
         
         # Check if player is already entered
         for player in players:
@@ -158,7 +158,7 @@ def main():
             continue
         
         # If new name entered, create player object
-        if not name == "" and not name_found:
+        if not name == '' and not name_found:
             stats = player_stats.filter(
                 (pl.col('player_display_name') == name) & (pl.col('season_type') == 'REG')
             )
@@ -228,66 +228,66 @@ def main():
     print()
 
     # If user specified output file at runtime, save output to .csv file. Includes addtional stats. 
-    if not output == "":
-        with open(output, "w") as file:
+    if not output == '':
+        with open(output, 'w') as file:
             fieldnames = [
-                "name",
-                "team_record",
-                "completion_%",
-                "total_yards",
-                "yards/game",
-                "total_tds",
-                "tds/game",
-                "turnovers",
-                "turnovers/game",
-                "tds/turnover",
-                "passer_rating",
-                "sacks",
-                "sacks/game"
+                'name',
+                'team_record',
+                'completion_%',
+                'total_yards',
+                'yards/game',
+                'total_tds',
+                'tds/game',
+                'turnovers',
+                'turnovers/game',
+                'tds/turnover',
+                'passer_rating',
+                'sacks',
+                'sacks/game'
             ]
             writer = csv.DictWriter(file, fieldnames=fieldnames)
             writer.writeheader()
             for player in sorted_players:
                 writer.writerow({
-                    "name": player.name,
-                    "team_record": player.rec,
-                    "completion_%": player.cmp_percent,
-                    "total_yards": player.ttl_yd,
-                    "yards/game": player.yds_game,
-                    "total_tds": player.ttl_td,
-                    "tds/game": player.tds_game,
-                    "turnovers": player.turnovers,
-                    "turnovers/game": player.tos_game,
-                    "tds/turnover": player.tds_to,
-                    "passer_rating": player.rtg,
-                    "sacks": player.sacks,
-                    "sacks/game": player.sacks_game
+                    'name': player.name,
+                    'team_record': player.rec,
+                    'completion_%': player.cmp_percent,
+                    'total_yards': player.ttl_yd,
+                    'yards/game': player.yds_game,
+                    'total_tds': player.ttl_td,
+                    'tds/game': player.tds_game,
+                    'turnovers': player.turnovers,
+                    'turnovers/game': player.tos_game,
+                    'tds/turnover': player.tds_to,
+                    'passer_rating': player.rtg,
+                    'sacks': player.sacks,
+                    'sacks/game': player.sacks_game
                 })
-        print(f"Advanced stats saved to '{output}'")
+        print(f'Advanced stats saved to "{output}"')
 
 
 def bold(s):
     # Bold a given string. Seems to only work on MacOS (possibly Linux). Uncomment below line and comment out original line to fix on Windows.
     #return s
-    return f"\033[1m{s}\033[0m"
+    return f'\033[1m{s}\033[0m'
 
 
 def player_sort(players, sort_method):
-    # Sort players list based on sort method chosen at runtime. Default is "yds"
+    # Sort players list based on sort method chosen at runtime. Default is 'yds'
     match sort_method:
-        case "yds":
+        case 'yds':
             return sorted(players, key=lambda player: player.ttl_yd, reverse=True)
-        case "tds":
+        case 'tds':
             return sorted(players, key=lambda player: player.ttl_td, reverse=True)
-        case "tos":
+        case 'tos':
             return sorted(players, key=lambda player: player.turnovers)
-        case "rtg":
+        case 'rtg':
             return sorted(players, key=lambda player: player.rtg, reverse=True)
-        case "rec":
+        case 'rec':
             return sorted(players, key=lambda player: int(player.wins), reverse=True)
         case _:
-            sys.exit("Incompatible sort method. Type -h to see options.")
+            sys.exit('Incompatible sort method. Type -h to see options.')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
