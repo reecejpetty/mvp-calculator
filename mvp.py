@@ -1,9 +1,15 @@
 import argparse
+import atexit
 import csv
+import os
+import re
+import readline
+import rlcompleter
 import sys
 import nflreadpy as nfl
 import polars as pl
 from datetime import datetime
+from requests import options
 from tabulate import tabulate
 
 
@@ -142,9 +148,43 @@ def main():
     player_stats = nfl.load_player_stats([year])
     players = []
 
+    histfile = os.path.join(os.path.expanduser("~"), ".mvp_history")
+    try:
+        readline.read_history_file(histfile)
+        # default history len is -1 (infinite), which may grow unruly
+        readline.set_history_length(1000)
+    except FileNotFoundError:
+        pass
+    
+    readline.set_completer_delims('')
+    
+    def completer(text, state):
+        buffer = readline.get_line_buffer()
+        hist_len = readline.get_current_history_length()
+        history = [readline.get_history_item(i) for i in range(1, hist_len + 1)]
+        
+        options = [item for item in history if item.startswith(buffer)]
+        if state < len(options):
+            return options[state]
+        return None
+    
+    readline.parse_and_bind('bind ^I rl_complete')
+    readline.set_completer(completer)
+    atexit.register(readline.write_history_file, histfile)
+    
     while True:
         name_found = False
         name = input('Player Name: ').strip()
+        if name == '':
+            break
+        
+        # Check for correct name formatting. Must be alpha character with two or more names. Remove history entry if incorrect.
+        pattern = r'(?:[a-zA-Z]+ {1}){1}(?:[a-zA-Z]+ ?)+'
+        if not re.match(pattern, name):
+            print('Incorrect name format. Please full player name.')
+            hist_len = readline.get_current_history_length()
+            readline.remove_history_item(hist_len - 1)
+            continue
         
         # Check if player is already entered
         for player in players:
@@ -155,33 +195,32 @@ def main():
             continue
         
         # If new name entered, create player object
-        if not name == '' and not name_found:
+        stats = player_stats.filter(
+            (pl.col('player_display_name') == name) & (pl.col('season_type') == 'REG')
+        )
+        
+        # If no players found, check abbreviated name (useful for players that have name suffixes)
+        if len(stats['player_display_name'].to_list()) == 0:
+            abr_name = name.split()
+            abr_name = f'{abr_name[0][0]}.{abr_name[1]}'
             stats = player_stats.filter(
-                (pl.col('player_display_name') == name) & (pl.col('season_type') == 'REG')
+                (pl.col('player_name') == abr_name) & (pl.col('season_type') == 'REG')
             )
-            
-            # If no players found, check abbreviated name (useful for players that have name suffixes)
-            if len(stats['player_display_name'].to_list()) == 0:
-                abr_name = name.split()
-                abr_name = f'{abr_name[0][0]}.{abr_name[1]}'
-                stats = player_stats.filter(
-                    (pl.col('player_name') == abr_name) & (pl.col('season_type') == 'REG')
-                )
-            if len(stats['player_display_name'].to_list()) == 0:
-                print(f'No games by {name} found for {year} season.')
-            else:
-                new_player = Player(stats)
-                
-                # Second check if player is already entered
-                for player in players:
-                    if new_player.name == player.name:
-                        print(f'{new_player.name} already entered.')
-                        name_found = True
-                
-                if not name_found:
-                    players.append(new_player)
+        if len(stats['player_display_name'].to_list()) == 0:
+            print(f'No games by {name} found for {year} season.')
+            hist_len = readline.get_current_history_length()
+            readline.remove_history_item(hist_len - 1)
         else:
-            break
+            new_player = Player(stats)
+            
+            # Second check if player is already entered
+            for player in players:
+                if new_player.name == player.name:
+                    print(f'{new_player.name} already entered.')
+                    name_found = True
+            
+            if not name_found:
+                players.append(new_player)
 
     if not players:
         sys.exit(f'No games played by entered players found for {year} season.')
