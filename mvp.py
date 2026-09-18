@@ -9,29 +9,27 @@ import sys
 import nflreadpy as nfl
 import polars as pl
 from datetime import datetime
-from requests import options
 from tabulate import tabulate
 
 
 class Player:
     def __init__(self, stats):
-        self.name = stats['player_display_name'].to_list()[0]
+        self.name = stats['player_display_name'].item()
         self.stats = stats
-        self.season = stats['season'].to_list()[0]
-        self.team = (stats['team'].to_list()[:1] or [None])[0]
-        self.weeks_played = stats['week'].to_list()
-        self.cmp = sum(stats['completions'].to_list())
-        self.att = sum(stats['attempts'].to_list())
-        self.pass_yd  = sum(stats['passing_yards'].to_list())
-        self.pass_td = sum(stats['passing_tds'].to_list())
-        self.ints = sum(stats['passing_interceptions'].to_list())
-        self.rush_yd = sum(stats['rushing_yards'].to_list())
-        self.rush_td = sum(stats['rushing_tds'].to_list())
-        self.rec_yd = sum(stats['receiving_yards'].to_list())
-        self.rec_td = sum(stats['receiving_tds'].to_list())
-        self.fum = sum(stats['sack_fumbles_lost'].to_list()) + sum(stats['rushing_fumbles_lost'].to_list()) + sum(stats['receiving_fumbles_lost'].to_list())
-        self.sacks = sum(stats['sacks_suffered'].to_list())
-        self.games_played = len(stats['week'].to_list())
+        self.season = stats['season'].item()
+        self.team = stats['recent_team'].item()
+        self.cmp = stats['completions'].item()
+        self.att = stats['attempts'].item()
+        self.pass_yd  = stats['passing_yards'].item()
+        self.pass_td = stats['passing_tds'].item()
+        self.ints = stats['passing_interceptions'].item()
+        self.rush_yd = stats['rushing_yards'].item()
+        self.rush_td = stats['rushing_tds'].item()
+        self.rec_yd = stats['receiving_yards'].item()
+        self.rec_td = stats['receiving_tds'].item()
+        self.fum = stats['sack_fumbles_lost'].item() + stats['rushing_fumbles_lost'].item() + stats['receiving_fumbles_lost'].item()
+        self.sacks = stats['sacks_suffered'].item()
+        self.games_played = stats['games'].item()
         self.wins = self.get_outcomes('w')
         self.losses = self.get_outcomes('l')
         self.ties = self.get_outcomes('t')
@@ -145,7 +143,7 @@ def main():
     if year < 1999:
         sys.exit('Only data from 1999 season onward is available.')
 
-    player_stats = nfl.load_player_stats([year])
+    player_stats = nfl.load_player_stats(seasons=year, summary_level='reg')
     players = []
 
     histfile = os.path.join(os.path.expanduser("~"), ".mvp_history")
