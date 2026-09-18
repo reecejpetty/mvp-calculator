@@ -137,10 +137,7 @@ def main():
         sys.exit('Invalid output. Please save as a .csv file.')
     year = args.year
     if year < 1999:
-        print()
-        print('Only data from 1999 season onward is available.')
-        print()
-        return 0
+        sys.exit('Only data from 1999 season onward is available.')
 
     player_stats = nfl.load_player_stats([year])
     players = []
@@ -187,10 +184,7 @@ def main():
             break
 
     if not players:
-        print()
-        print(f'No games played by entered players found for {year} season.')
-        print()
-        return 0
+        sys.exit(f'No games played by entered players found for {year} season.')
     
     sorted_players = player_sort(players, sort_method)
     
