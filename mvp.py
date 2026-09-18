@@ -131,11 +131,11 @@ def main():
     parser.add_argument('-o', '--output', default='', help='Output to .csv', type=str)
     parser.add_argument('-y', '--year', default=datetime.now().year, help='Check past NFL seasons by year', type=int)
     args = parser.parse_args()
-    sort_method = args.s
-    if not args.o == '' and not args.o.lower().endswith('.csv'):
+    sort_method = args.sort
+    output = args.output
+    if not output == '' and not output.lower().endswith('.csv'):
         sys.exit('Invalid output. Please save as a .csv file.')
-    output = args.o
-    year = args.y
+    year = args.year
     if year < 1999:
         print()
         print('Only data from 1999 season onward is available.')
